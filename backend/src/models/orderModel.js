@@ -7,10 +7,22 @@ async function createOrder({ clienteId, items, notas }) {
     await connection.beginTransaction();
     let total = 0;
     const details = [];
+    // Agrupa líneas repetidas del mismo producto para que el stock se valide contra el total pedido.
+    const cantidadesPorProducto = new Map();
     for (const item of items) {
-      const [rows] = await connection.query('SELECT id, nombre, precioVenta FROM productos WHERE id = ?', [item.productoId]);
+      const productoId = Number(item.productoId);
+      cantidadesPorProducto.set(productoId, (cantidadesPorProducto.get(productoId) || 0) + Number(item.cantidad));
+    }
+    // Ordena por id para que dos pedidos simultáneos bloqueen las filas en el mismo orden (evita deadlocks).
+    const productosOrdenados = [...cantidadesPorProducto.entries()].sort((a, b) => a[0] - b[0]);
+    for (const [productoId, cantidad] of productosOrdenados) {
+      const item = { productoId, cantidad };
+      const [rows] = await connection.query('SELECT id, nombre, precioVenta, stock FROM productos WHERE id = ? FOR UPDATE', [item.productoId]);
       const product = rows[0];
       if (!product) throw new Error(`Producto con id ${item.productoId} no existe`);
+      if (product.stock < Number(item.cantidad)) {
+        throw new Error(`Stock insuficiente para "${product.nombre}". Disponible: ${product.stock}`);
+      }
       const price = Number(product.precioVenta);
       const subtotal = price * Number(item.cantidad);
       total += subtotal;
@@ -50,8 +62,10 @@ async function updateOrderStatus(id, estado) {
     const order = orders[0];
     if (!order) { const error = new Error('Pedido no encontrado'); error.status = 404; throw error; }
     if (order.estado === estado) { await connection.commit(); return getOrderById(id); }
-    if (estado === 'confirmado') {
-      const [details] = await connection.query('SELECT * FROM detalle_pedidos WHERE pedidoId = ?', [id]);
+    // El stock solo se descuenta al pasar de 'pendiente' a 'confirmado'.
+    // Sin esta guarda, confirmar → cancelar → confirmar lo descontaría dos veces.
+    if (estado === 'confirmado' && order.estado === 'pendiente') {
+      const [details] = await connection.query('SELECT * FROM detalle_pedidos WHERE pedidoId = ? ORDER BY productoId', [id]);
       for (const detail of details) {
         const [products] = await connection.query('SELECT id, stock FROM productos WHERE id = ? FOR UPDATE', [detail.productoId]);
         const product = products[0];

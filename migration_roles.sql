@@ -25,10 +25,9 @@ DROP PROCEDURE ensure_skull_face_role_columns//
 DELIMITER ;
 
 -- Conserva cualquier usuario existente, incluido tlacolula, y garantiza las cuentas requeridas.
-INSERT INTO usuarios (usuario, password, nombreCompleto, rol) VALUES
-('celis', '$2b$10$jMCGH8LQUCRlrCiWXAhp..ZzfwPZyzWwWsIzmkQ70golCQmJWoomK', 'Administrador SKULL FACE', 'administrador'),
-('tlaco', '$2b$10$6q8RDrMZxdl84MZf90SXLO4oHWxz2/ZdUyXpj8am/vxZaOv/XywRu', 'Recepción SKULL FACE', 'recepcionista')
-ON DUPLICATE KEY UPDATE password = VALUES(password), nombreCompleto = VALUES(nombreCompleto), rol = VALUES(rol);
+-- Las cuentas iniciales ya no se siembran aquí para no versionar sus hashes en git:
+-- el backend las crea al arrancar (backend/src/seedAdmin.js) leyendo ADMIN_USER/ADMIN_PASSWORD
+-- y RECEPCION_USER/RECEPCION_PASSWORD del entorno.
 
 CREATE TABLE IF NOT EXISTS pedidos (
   id INT AUTO_INCREMENT PRIMARY KEY, clienteId INT NOT NULL, total DECIMAL(10,2) NOT NULL,

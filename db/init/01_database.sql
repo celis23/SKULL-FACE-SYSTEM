@@ -74,10 +74,9 @@ CREATE TABLE detalle_pedidos (
     FOREIGN KEY (productoId) REFERENCES productos(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- bcrypt, 10 salt rounds. No se almacenan contraseñas en texto plano.
-INSERT INTO usuarios (usuario, password, nombreCompleto, rol) VALUES
-('celis', '$2b$10$jMCGH8LQUCRlrCiWXAhp..ZzfwPZyzWwWsIzmkQ70golCQmJWoomK', 'Administrador SKULL FACE', 'administrador'),
-('tlaco', '$2b$10$6q8RDrMZxdl84MZf90SXLO4oHWxz2/ZdUyXpj8am/vxZaOv/XywRu', 'Recepción SKULL FACE', 'recepcionista');
+-- Las cuentas iniciales NO se siembran aquí: sus hashes acabarían versionados en git.
+-- El backend las crea al arrancar (src/seedAdmin.js) leyendo ADMIN_USER/ADMIN_PASSWORD
+-- y RECEPCION_USER/RECEPCION_PASSWORD del entorno.
 
 INSERT INTO productos (nombre, categoria, talla, color, precioVenta, costo, stock, estado) VALUES
 ('Hoodie Skull', 'Hoodie', 'M', 'Negro', 650.00, 350.00, 10, 'Disponible'),
