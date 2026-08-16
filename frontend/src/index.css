@@ -263,6 +263,13 @@ textarea { font-family: var(--font-display); }
   font-family: var(--font-mono);
 }
 
+.discount-box { border-top: 1px solid var(--border); padding-top: 14px; }
+.discount-input-row { display: flex; gap: 8px; }
+.discount-input-row input { flex: 1; }
+.discount-input-row .btn-secondary { padding: 8px 12px; font-size: 11px; }
+.discount-success { color: var(--ok); font: 12px var(--font-mono); margin-top: 7px; }
+.sale-discount { color: var(--ok); }
+
 /* ===================== APP SHELL ===================== */
 
 .app-shell {

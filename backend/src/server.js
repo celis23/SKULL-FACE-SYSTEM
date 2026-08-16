@@ -10,6 +10,7 @@ const statisticsRoutes = require('./routes/statisticsRoutes');
 const userRoutes = require('./routes/userRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
+const discountRoutes = require('./routes/discountRoutes');
 const pool = require('./config/db');
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/statistics', statisticsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/catalog', catalogRoutes);
+app.use('/api/discounts', discountRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Ruta no encontrada' });

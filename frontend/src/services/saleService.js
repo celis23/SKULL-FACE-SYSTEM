@@ -14,3 +14,8 @@ export async function getProductsForSale() {
   const response = await api.get('/sales/products');
   return response.data;
 }
+
+export async function validateDiscount(codigo) {
+  const response = await api.get(`/discounts/${encodeURIComponent(codigo)}`);
+  return response.data;
+}

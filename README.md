@@ -141,3 +141,40 @@ SKULL-FACE-SYSTEM/
 - El catálogo público autenticado (`/api/catalog`) nunca devuelve costo ni ganancias.
 - Al registrar una venta, el backend usa una transacción de MySQL: si algo falla, no se descuenta stock ni se guarda nada a medias.
 - El estado de cada producto (`Disponible`, `Stock bajo`, `Agotado`) se recalcula automáticamente según el stock (stock bajo ≤ 5 unidades, agotado = 0).
+
+---
+
+## 8. Despliegue con Docker
+
+Configura las variables de Docker sin usar secretos reales en Git:
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y cambia `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD` y `JWT_SECRET`.
+
+Levanta los tres servicios:
+
+```bash
+docker compose up --build
+```
+
+- Frontend: `http://localhost:8080`
+- Backend: `http://localhost:3000/api/health`
+
+Nginx enruta `/api` al backend y permite refrescar rutas React como `/sales` y `/tienda`.
+
+Para detener los contenedores:
+
+```bash
+docker compose down
+```
+
+Para borrar completamente la base de datos Docker:
+
+```bash
+docker compose down -v
+```
+
+`-v` elimina el volumen de MySQL y sus datos; el siguiente arranque inicializará la base desde `db/init/`.

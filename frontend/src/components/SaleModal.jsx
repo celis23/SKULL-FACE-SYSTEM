@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { validateDiscount } from '../services/saleService';
 
 const METODOS_PAGO = ['Efectivo', 'Transferencia', 'Tarjeta', 'Otro'];
 const money = (v) => `$${Number(v).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -8,6 +9,9 @@ export default function SaleModal({ isOpen, onClose, onSave, products }) {
   const [cantidad, setCantidad] = useState(1);
   const [metodoPago, setMetodoPago] = useState('Efectivo');
   const [items, setItems] = useState([]);
+  const [codigoDescuento, setCodigoDescuento] = useState('');
+  const [porcentajeDescuento, setPorcentajeDescuento] = useState(0);
+  const [discountMessage, setDiscountMessage] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -23,6 +27,9 @@ export default function SaleModal({ isOpen, onClose, onSave, products }) {
     setCantidad(1);
     setMetodoPago('Efectivo');
     setItems([]);
+    setCodigoDescuento('');
+    setPorcentajeDescuento(0);
+    setDiscountMessage('');
     setError('');
   }
 
@@ -80,7 +87,33 @@ export default function SaleModal({ isOpen, onClose, onSave, products }) {
     setItems((prev) => prev.filter((i) => i.productoId !== id));
   }
 
-  const total = items.reduce((acc, i) => acc + i.precioVenta * i.cantidad, 0);
+  function handleDiscountChange(value) {
+    setCodigoDescuento(value);
+    setPorcentajeDescuento(0);
+    setDiscountMessage('');
+  }
+
+  async function handleApplyDiscount() {
+    const codigo = codigoDescuento.trim();
+    if (!codigo) {
+      setPorcentajeDescuento(0);
+      setDiscountMessage('');
+      return;
+    }
+    try {
+      const discount = await validateDiscount(codigo);
+      setCodigoDescuento(discount.codigo);
+      setPorcentajeDescuento(Number(discount.porcentaje));
+      setDiscountMessage(`${discount.codigo} aplicado`);
+    } catch (err) {
+      setPorcentajeDescuento(0);
+      setDiscountMessage(err.response?.data?.message || 'Código de descuento inválido');
+    }
+  }
+
+  const subtotal = items.reduce((acc, i) => acc + Number(i.precioVenta) * i.cantidad, 0);
+  const montoDescuento = subtotal * porcentajeDescuento / 100;
+  const total = subtotal - montoDescuento;
 
   async function handleSubmit() {
     setError('');
@@ -94,7 +127,8 @@ export default function SaleModal({ isOpen, onClose, onSave, products }) {
     try {
       await onSave({
         items: items.map((i) => ({ productoId: i.productoId, cantidad: i.cantidad })),
-        metodoPago
+        metodoPago,
+        codigoDescuento: porcentajeDescuento > 0 ? codigoDescuento : null
       });
       handleClose();
     } catch (err) {
@@ -153,6 +187,17 @@ export default function SaleModal({ isOpen, onClose, onSave, products }) {
             </div>
           )}
 
+          <div className="discount-box">
+            <label>
+              Código de descuento
+              <div className="discount-input-row">
+                <input value={codigoDescuento} onChange={(e) => handleDiscountChange(e.target.value)} placeholder="YATZ10" />
+                <button type="button" className="btn-secondary" onClick={handleApplyDiscount}>Aplicar</button>
+              </div>
+            </label>
+            {discountMessage && <p className={porcentajeDescuento ? 'discount-success' : 'form-error'}>{discountMessage}</p>}
+          </div>
+
           <label>
             Método de pago
             <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
@@ -163,9 +208,14 @@ export default function SaleModal({ isOpen, onClose, onSave, products }) {
           </label>
 
           <div className="sale-total">
-            <span>TOTAL</span>
-            <span>{money(total)}</span>
+            <span>SUBTOTAL</span>
+            <span>{money(subtotal)}</span>
           </div>
+          {porcentajeDescuento > 0 && <>
+            <div className="sale-total sale-discount"><span>DESCUENTO ({porcentajeDescuento}%)</span><span>-{money(montoDescuento)}</span></div>
+            <div className="sale-total"><span>TOTAL</span><span>{money(total)}</span></div>
+          </>}
+          {porcentajeDescuento === 0 && <div className="sale-total"><span>TOTAL</span><span>{money(total)}</span></div>}
 
           {error && <p className="form-error">{error}</p>}
 

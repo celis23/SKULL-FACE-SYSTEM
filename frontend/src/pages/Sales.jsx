@@ -73,7 +73,10 @@ export default function Sales() {
                       ))}
                     </td>
                     <td>{s.metodoPago}</td>
-                    <td>{money(s.total)}</td>
+                    <td>
+                      {money(s.total)}
+                      {s.codigoDescuento && <div><span className="badge badge-warn">{s.codigoDescuento} · -{Number(s.porcentajeDescuento)}%</span></div>}
+                    </td>
                     {isAdmin && <td>{money(s.ganancia)}</td>}
                   </tr>
                 ))}

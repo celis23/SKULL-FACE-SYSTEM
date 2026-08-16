@@ -18,7 +18,7 @@ async function getSales(req, res) {
 
 async function createSale(req, res) {
   try {
-    const { items, metodoPago } = req.body;
+    const { items, metodoPago, codigoDescuento } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'Debe incluir al menos un producto en la venta' });
@@ -37,6 +37,7 @@ async function createSale(req, res) {
     const venta = await saleModel.createSale({
       items,
       metodoPago,
+      codigoDescuento,
       usuarioId: req.user ? req.user.id : null
     });
 
