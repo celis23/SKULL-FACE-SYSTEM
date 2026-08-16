@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { getProductById, decreaseStock } = require('./productModel');
+const { decreaseStock } = require('./productModel');
 
 async function createSale({ items, metodoPago, usuarioId }) {
   const connection = await pool.getConnection();
@@ -12,7 +12,8 @@ async function createSale({ items, metodoPago, usuarioId }) {
     const detalles = [];
 
     for (const item of items) {
-      const producto = await getProductById(item.productoId);
+      const [productos] = await connection.query('SELECT * FROM productos WHERE id = ? FOR UPDATE', [item.productoId]);
+      const producto = productos[0];
 
       if (!producto) {
         throw new Error(`Producto con id ${item.productoId} no existe`);

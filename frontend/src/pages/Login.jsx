@@ -21,8 +21,8 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await login(usuario, password);
-      navigate('/');
+      const data = await login(usuario, password);
+      navigate(data.user.rol === 'cliente' ? '/tienda' : data.user.rol === 'recepcionista' ? '/sales' : '/');
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo iniciar sesión');
     } finally {
@@ -46,7 +46,7 @@ export default function Login() {
               type="text"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
-              placeholder="tlacolula"
+              placeholder="celis"
               autoComplete="username"
             />
           </label>
@@ -68,6 +68,7 @@ export default function Login() {
             {loading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
         </form>
+        <p className="login-register-link">¿Eres cliente? <a href="/register">Crea tu cuenta</a></p>
       </div>
     </div>
   );

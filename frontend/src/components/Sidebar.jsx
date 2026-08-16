@@ -1,16 +1,20 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const links = [
+const adminLinks = [
   { to: '/', label: 'Dashboard', icon: '⛶' },
   { to: '/inventory', label: 'Inventario', icon: '▦' },
   { to: '/products', label: 'Productos', icon: '◧' },
   { to: '/sales', label: 'Ventas', icon: '✕' },
-  { to: '/statistics', label: 'Estadísticas', icon: '▤' }
+  { to: '/statistics', label: 'Estadísticas', icon: '▤' },
+  { to: '/users', label: 'Usuarios', icon: '◉' },
+  { to: '/orders', label: 'Pedidos', icon: '□' },
+  { to: '/settings', label: 'Configuración', icon: '⚙' }
 ];
 
 export default function Sidebar() {
   const { logout, user } = useAuth();
+  const links = user?.rol === 'recepcionista' ? [{ to: '/sales', label: 'Ventas', icon: '✕' }] : adminLinks;
 
   return (
     <aside className="sidebar">

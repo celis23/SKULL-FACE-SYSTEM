@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import SaleModal from '../components/SaleModal';
-import { getSales, createSale } from '../services/saleService';
-import { getProducts } from '../services/productService';
+import { getSales, createSale, getProductsForSale } from '../services/saleService';
+import { useAuth } from '../context/AuthContext';
 
 const money = (v) => `$${Number(v).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function Sales() {
+  const { isAdmin } = useAuth();
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ export default function Sales() {
   async function loadData() {
     setLoading(true);
     try {
-      const [salesData, productsData] = await Promise.all([getSales(), getProducts()]);
+      const [salesData, productsData] = await Promise.all([getSales(), getProductsForSale()]);
       setSales(salesData);
       setProducts(productsData);
     } catch (error) {
@@ -57,7 +58,7 @@ export default function Sales() {
                   <th>Productos</th>
                   <th>Método de pago</th>
                   <th>Total</th>
-                  <th>Ganancia</th>
+                  {isAdmin && <th>Ganancia</th>}
                 </tr>
               </thead>
               <tbody>
@@ -73,7 +74,7 @@ export default function Sales() {
                     </td>
                     <td>{s.metodoPago}</td>
                     <td>{money(s.total)}</td>
-                    <td>{money(s.ganancia)}</td>
+                    {isAdmin && <td>{money(s.ganancia)}</td>}
                   </tr>
                 ))}
               </tbody>

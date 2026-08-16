@@ -3,6 +3,9 @@ const productModel = require('../models/productModel');
 async function getProducts(req, res) {
   try {
     const productos = await productModel.getAllProducts();
+    if (req.user?.rol === 'recepcionista') {
+      return res.json(productos.map(({ costo, ...producto }) => producto));
+    }
     return res.json(productos);
   } catch (error) {
     console.error('Error al obtener productos:', error);
@@ -15,6 +18,10 @@ async function getProduct(req, res) {
     const producto = await productModel.getProductById(req.params.id);
     if (!producto) {
       return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+    if (req.user?.rol === 'recepcionista') {
+      const { costo, ...safeProduct } = producto;
+      return res.json(safeProduct);
     }
     return res.json(producto);
   } catch (error) {
@@ -105,11 +112,22 @@ async function getInventory(req, res) {
   }
 }
 
+async function getProductsForSale(req, res) {
+  try {
+    const productos = await productModel.getAllProducts();
+    return res.json(productos.map(({ costo, ...producto }) => producto));
+  } catch (error) {
+    console.error('Error al obtener productos para venta:', error);
+    return res.status(500).json({ message: 'Error al obtener productos para venta' });
+  }
+}
+
 module.exports = {
   getProducts,
   getProduct,
   createProduct,
   updateProduct,
   deleteProduct,
-  getInventory
+  getInventory,
+  getProductsForSale
 };

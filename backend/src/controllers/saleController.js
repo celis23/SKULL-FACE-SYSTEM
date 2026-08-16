@@ -3,6 +3,12 @@ const saleModel = require('../models/saleModel');
 async function getSales(req, res) {
   try {
     const ventas = await saleModel.getAllSales();
+    if (req.user.rol === 'recepcionista') {
+      return res.json(ventas.map(({ ganancia, detalles, ...venta }) => ({
+        ...venta,
+        detalles: detalles.map(({ costoUnitario, ...detalle }) => detalle)
+      })));
+    }
     return res.json(ventas);
   } catch (error) {
     console.error('Error al obtener ventas:', error);

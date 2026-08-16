@@ -1,0 +1,11 @@
+import { useEffect, useState } from 'react';
+const blank = { usuario: '', nombreCompleto: '', email: '', telefono: '', password: '', rol: 'recepcionista' };
+export default function UserModal({ isOpen, user, onClose, onSave }) {
+  const [form, setForm] = useState(blank); const [error, setError] = useState(''); const [saving, setSaving] = useState(false);
+  useEffect(() => { setForm(user ? { ...blank, ...user, password: '' } : blank); setError(''); }, [user, isOpen]);
+  if (!isOpen) return null;
+  async function submit(e) { e.preventDefault(); setSaving(true); setError(''); try { await onSave(form); onClose(); } catch (err) { setError(err.response?.data?.message || 'No se pudo guardar'); } finally { setSaving(false); } }
+  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={(e) => e.stopPropagation()}><div className="modal-header"><h3>{user ? 'Editar usuario' : 'Nuevo usuario'}</h3><button className="btn-icon" onClick={onClose}>✕</button></div><form className="modal-form" onSubmit={submit}>
+    <label>Usuario<input required value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} /></label><label>Nombre completo<input value={form.nombreCompleto || ''} onChange={(e) => setForm({ ...form, nombreCompleto: e.target.value })} /></label><label>Email<input type="email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label><label>Teléfono<input value={form.telefono || ''} onChange={(e) => setForm({ ...form, telefono: e.target.value })} /></label><label>Rol<select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}><option value="recepcionista">Recepcionista</option><option value="administrador">Administrador</option></select></label><label>Contraseña {user && <small>(dejar vacía para conservar)</small>}<input required={!user} type="password" minLength="6" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>{error && <p className="form-error">{error}</p>}<div className="modal-actions"><button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button><button className="btn-primary" disabled={saving}>{saving ? 'Guardando...' : 'Guardar'}</button></div>
+  </form></div></div>;
+}

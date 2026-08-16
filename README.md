@@ -18,13 +18,15 @@ Stack: **React + Vite** (frontend) · **Node.js + Express** (backend) · **MySQL
 1. Abre **MySQL Workbench** y conéctate a tu servidor local.
 2. Ve a `File > Open SQL Script...` y selecciona el archivo `database.sql` que está en la raíz de este proyecto.
 3. Ejecuta todo el script (ícono del rayo ⚡ o `Ctrl+Shift+Enter`).
-4. Esto creará la base de datos `skull_face`, sus tablas, relaciones, el usuario inicial y 3 productos de ejemplo.
+4. Esto creará la base de datos `skull_face`, sus tablas, relaciones, usuarios iniciales y 3 productos de ejemplo.
 
-Usuario inicial del sistema:
+Si ya tienes una instalación anterior y quieres conservar sus datos, ejecuta `migration_roles.sql` una sola vez en lugar de `database.sql`. La migración reemplaza el usuario antiguo `tlacolula`.
+
+Usuarios iniciales:
 
 ```
-usuario: tlacolula
-contraseña: 12345tla
+administrador: celis / 111024
+recepcionista: tlaco / 123tlaco
 ```
 
 ---
@@ -92,12 +94,10 @@ VITE_API_URL=http://localhost:3000/api
 ## 5. Uso
 
 1. Abre `http://localhost:5173` en tu navegador.
-2. Inicia sesión con `tlacolula` / `12345tla`.
-3. Desde el Dashboard verás tus métricas generales.
-4. En **Productos** puedes crear/editar/eliminar hoodies, pants y playeras.
-5. En **Inventario** puedes buscar, filtrar y ver el stock actual.
-6. En **Ventas** puedes registrar una venta nueva (el stock se descuenta automáticamente y no se permite vender más de lo disponible).
-7. En **Estadísticas** verás ventas diarias/semanales/mensuales, ganancias, producto más vendido, categoría más vendida, ventas por método de pago y productos con poco stock o agotados.
+2. Inicia sesión como `celis` / `111024` para administrar el sistema.
+3. `tlaco` / `123tlaco` entra directamente a **Ventas** y no puede acceder a módulos administrativos.
+4. Los clientes se registran en `/register`, compran en `/tienda` y consultan sus pedidos en `/mis-pedidos`.
+5. Los pedidos se crean en estado `pendiente`; al confirmarlos desde **Pedidos**, el stock se descuenta en una transacción MySQL.
 
 ---
 
@@ -136,6 +136,8 @@ SKULL-FACE-SYSTEM/
 
 - La contraseña del usuario inicial está almacenada en `database.sql` con hash **bcrypt** real (10 salt rounds), nunca en texto plano.
 - El login se valida completamente en el backend (`POST /api/auth/login`), no en el frontend.
-- Todas las rutas de la API excepto `/api/auth/login` requieren un token JWT válido (`Authorization: Bearer <token>`).
+- El JWT incluye `id`, `usuario` y `rol`; la API valida permisos con roles, no solo el frontend.
+- `/api/auth/login` y `/api/auth/register` son públicas. El registro público siempre crea usuarios con rol `cliente`.
+- El catálogo público autenticado (`/api/catalog`) nunca devuelve costo ni ganancias.
 - Al registrar una venta, el backend usa una transacción de MySQL: si algo falla, no se descuenta stock ni se guarda nada a medias.
 - El estado de cada producto (`Disponible`, `Stock bajo`, `Agotado`) se recalcula automáticamente según el stock (stock bajo ≤ 5 unidades, agotado = 0).

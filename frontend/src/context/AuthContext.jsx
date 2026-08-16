@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { loginRequest } from '../services/authService';
+import { loginRequest, registerRequest } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -26,6 +26,14 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  async function register(data) {
+    const response = await registerRequest(data);
+    localStorage.setItem('skullface_token', response.token);
+    localStorage.setItem('skullface_user', JSON.stringify(response.user));
+    setUser(response.user);
+    return response;
+  }
+
   function logout() {
     localStorage.removeItem('skullface_token');
     localStorage.removeItem('skullface_user');
@@ -37,7 +45,11 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     loading,
     login,
-    logout
+    register,
+    logout,
+    isAdmin: user?.rol === 'administrador',
+    isRecepcionista: user?.rol === 'recepcionista',
+    isCliente: user?.rol === 'cliente'
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

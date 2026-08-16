@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, authorizeRoles } = require('../middleware/auth');
 
-router.get('/', verifyToken, productController.getInventory);
+router.get('/', verifyToken, authorizeRoles('administrador'), productController.getInventory);
 
 module.exports = router;

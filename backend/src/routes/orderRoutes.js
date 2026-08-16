@@ -1,0 +1,10 @@
+const express = require('express');
+const controller = require('../controllers/orderController');
+const { verifyToken, authorizeRoles } = require('../middleware/auth');
+const router = express.Router();
+router.use(verifyToken);
+router.get('/', authorizeRoles('administrador'), controller.getOrders);
+router.get('/mine', authorizeRoles('cliente'), controller.getMyOrders);
+router.post('/', authorizeRoles('cliente'), controller.createOrder);
+router.put('/:id/status', authorizeRoles('administrador'), controller.updateStatus);
+module.exports = router;
